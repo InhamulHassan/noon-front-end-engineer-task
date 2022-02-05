@@ -2,8 +2,8 @@ import { createGlobalStyle } from "styled-components";
 
 export default createGlobalStyle`
     :root {
-        --primary: #feee00;
-        --secondary: #f5a523;
+        --primary: #ff8913;
+        --secondary: #e81894;
         --light: #ffffff;
         --dark: #000000;
         --background: #fff25375;
@@ -14,6 +14,7 @@ export default createGlobalStyle`
         --light-gray: #d3d3d3;
         --liked: #dd2e44;
         --radius: 5px;
+        --lg-width: 640px;
     }
     * {
         margin: 0;
@@ -22,16 +23,13 @@ export default createGlobalStyle`
     }
     html{
         display: block;
-        background: var(--background);
-        color: var(--light);
+        background: var(--light);
     }
     body{
         background-color: var(--light);
         min-height: 100vh;
         padding: 0;
         height: 100%;
-        max-width: 640px;
-        margin: 0 auto;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
     }
     a {
