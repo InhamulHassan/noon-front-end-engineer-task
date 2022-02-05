@@ -23,8 +23,14 @@ const PostContainer = styled.div`
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
-    margin: 30px 15px;
+    margin: 15px 0;
     border-bottom: 1px solid var(--light-gray);
+
+    /* on screens smaller than 640px (mobiles/mini tablets) */
+    @media only screen and (max-width: 640px) {
+        /* reduce the vertical margins a bit so the mobile feed looks seamless */
+        margin: 5px 0;
+    }
 `;
 
 const PostAuthorContainer = styled.div`
@@ -62,6 +68,12 @@ const PostImageContainer = styled.div`
     justify-content: center;
     border-radius: var(--radius);
     overflow: hidden;
+
+    /* on screens smaller than 640px (mobiles/mini tablets) */
+    @media only screen and (max-width: 640px) {
+        /* remove the border radius, so the image sits flush with the screen */
+        border-radius: 0; 
+    }
 `;
 
 const PostImage = styled.img`
@@ -97,61 +109,21 @@ const PostTitle = styled.div`
     line-height: 1.6rem;
     width: auto;
     max-width: 75%;
+    color: var(--light);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 `;
 
-const PostLikesIcon = styled.i`
-    &,
-    &::after,
-    &::before {
-        cursor: pointer;
-        border-color: var(--dark-gray);
-        background-color: transparent;
-        transition: border-color 100ms ease-in, background-color 100ms ease-in;
-    }
-    &:hover,
-    &:hover::after,
-    &:hover::before {
-        border-color: var(--liked);
-        background-color: var(--liked);
-    }
-    &,
-    &::after {
-        border: 2px solid;
-        border-top-left-radius: 100px;
-        border-top-right-radius: 100px;
-        width: 10px;
-        height: 8px;
-        border-bottom: 0;
-    }
-    & {
-        box-sizing: border-box;
-        position: relative;
-        transform: translate(calc(-10px / 2 * var(--ggs, 1)), calc(-6px / 2 * var(--ggs, 1)))
-        rotate(-45deg) scale(var(--ggs, 1));
-        display: block;
-    }
-    &::after,
-    &::before {
-        content: '';
-        display: block;
-        box-sizing: border-box;
-        position: absolute;
-    }
-    &::after {
-        right: -9px;
-        transform: rotate(90deg);
-        top: 5px;
-    }
-    &::before {
-        width: 11px;
-        height: 11px;
-        border-left: 2px solid;
-        border-bottom: 2px solid;
-        left: -2px;
-        top: 3px;
+const PostLikesIcon = styled.svg`
+   cursor: pointer;
+   fill: var(--dark-gray);
+   stroke: var(--light);
+   stroke-width: 2px;
+   transition: fill 100ms ease-in, stroke 100ms ease-in;
+   &:hover {
+       fill: var(--liked);
+       stroke: var(--liked);
     }
 `;
 
@@ -173,22 +145,29 @@ const PostLikesCount = styled.div`
     padding: 5px 0;
 `;
 
+const PostLikesLink = styled.a`
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    text-decoration: none;
+    cursor: pointer;
+    opacity: 1;
+    transition: opacity 100ms ease-in;
+
+    &:hover {
+        opacity: 0.75;
+    } 
+`;
+
 // A new component based on PostLikesIcon, but with some color overrides
 const PostLikesIconCount = styled(PostLikesIcon)`
-    margin-left: 5px;
-    &,
-    &::after,
-    &::before {
-        border-color: var(--link);
-        background-color: var(--link);
-        transition: border-color 100ms ease-in, background-color 100ms ease-in;
-    }
-    &:hover,
-    &:hover::after,
-    &:hover::before {
-        border-color: var(--liked);
-        background-color: var(--liked);
-    }
+    /* change fill color */
+    fill: var(--link);
+    /* icon alignment offset */ 
+    margin-top: 1px;
+    margin-right: 5px;
 `;
 
 const PostLikes = styled.div`
@@ -198,7 +177,6 @@ const PostLikes = styled.div`
     font-size: 0.8rem;
     font-weight: 700;
     line-height: 1.4rem;
-    margin-left: 15px;
 `;
 
 const PostDescription = styled.p`
@@ -227,7 +205,7 @@ const PostHashtagsItem = styled.a`
     text-decoration: none;
 `;
 
-const PostCommentsCount = styled.a`
+const PostCommentsLink = styled.a`
     position: relative;
     font-size: 0.8rem;
     font-weight: 600;
@@ -262,13 +240,19 @@ export const Post: React.FC<IProps> = ({ post }) => {
                 <PostImage src={post.imgSrc} alt={post.imgAltText}></PostImage>
                 <PostImageContent>
                     <PostTitle>{post.title}</PostTitle>
-                    <PostLikesIcon></PostLikesIcon>
+                    <PostLikesIcon viewBox="0 0 24 24" width="24" height="24">
+                        <path d="M14 20.408c-.492.308-.903.546-1.192.709-.153.086-.308.17-.463.252h-.002a.75.75 0 01-.686 0 16.709 16.709 0 01-.465-.252 31.147 31.147 0 01-4.803-3.34C3.8 15.572 1 12.331 1 8.513 1 5.052 3.829 2.5 6.736 2.5 9.03 2.5 10.881 3.726 12 5.605 13.12 3.726 14.97 2.5 17.264 2.5 20.17 2.5 23 5.052 23 8.514c0 3.818-2.801 7.06-5.389 9.262A31.146 31.146 0 0114 20.408z"></path>
+                    </PostLikesIcon>
                 </PostImageContent>
             </PostImageContainer>
             <PostDescriptionContainer>
                 <PostLikesCount>
-                    <PostLikesIconCount></PostLikesIconCount>
-                    <PostLikes>{numberFormatter(post.likeCount)} {post.likeCount == 1 ? `like` : `likes`}</PostLikes>
+                    <PostLikesLink href="#">
+                        <PostLikesIconCount viewBox="0 0 24 24" width="18" height="18">
+                            <path d="M14 20.408c-.492.308-.903.546-1.192.709-.153.086-.308.17-.463.252h-.002a.75.75 0 01-.686 0 16.709 16.709 0 01-.465-.252 31.147 31.147 0 01-4.803-3.34C3.8 15.572 1 12.331 1 8.513 1 5.052 3.829 2.5 6.736 2.5 9.03 2.5 10.881 3.726 12 5.605 13.12 3.726 14.97 2.5 17.264 2.5 20.17 2.5 23 5.052 23 8.514c0 3.818-2.801 7.06-5.389 9.262A31.146 31.146 0 0114 20.408z"></path>
+                        </PostLikesIconCount>
+                        <PostLikes>{numberFormatter(post.likeCount)} {post.likeCount == 1 ? `like` : `likes`}</PostLikes>
+                    </PostLikesLink>
                 </PostLikesCount>
                 <PostDescription>{post.description}</PostDescription>
                 <PostHashtagsList>
@@ -276,7 +260,7 @@ export const Post: React.FC<IProps> = ({ post }) => {
                         <PostHashtagsItem href="#" key={index}>{`#${singleTag}`}</PostHashtagsItem>
                     ))}
                 </PostHashtagsList>
-                <PostCommentsCount>View {numberFormatter(post.commentsCount)} {post.commentsCount == 1 ? `comment` : `comments`}</PostCommentsCount>
+                <PostCommentsLink href='#'>View {numberFormatter(post.commentsCount)} {post.commentsCount == 1 ? `comment` : `comments`}</PostCommentsLink>
             </PostDescriptionContainer>
         </PostContainer>
     )
