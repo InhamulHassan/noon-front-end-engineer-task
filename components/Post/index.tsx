@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 
+// context
+import { useLikedPostsState, useLikedPostsDispatch } from "../../context/likedPosts";
+
 // sub components
 import Hashtags from './Hashtags';
 
@@ -225,19 +228,21 @@ const PostCommentsLink = styled.a`
 
 // converts a number to a human-friendly string  
 const numberFormatter = (number: number): string => {
+    if (!number) return '';
     return number.toLocaleString('en-US');
 }
 
 export const Post: React.FC<IProps> = ({ post }) => {
     const [postLiked, setPostLiked] = useState(false);
     const [postLikeCount, setPostLikeCount] = useState(post.likeCount);
+    // context hooks
+    const { likedPosts } = useLikedPostsState();
+    const { setLikedPosts } = useLikedPostsDispatch();
 
-    // trigger this only on mount
+    // trigger this when likedPosts context object changes
     useEffect(() => {
-        let likedPostsArray = localStorage.getItem('ideaa-liked-posts') ? JSON.parse(localStorage.getItem('ideaa-liked-posts') || '{}') : [];
-
-        // check if the current post is liked or not
-        let isPostLiked = likedPostsArray.includes(post._id);
+        // check if the current post is liked or not (i.e. it exists in the context)
+        let isPostLiked = likedPosts.includes(post._id);
 
         // trigger post's like state change along with the like count on mount
         setPostLiked(isPostLiked);
@@ -245,13 +250,13 @@ export const Post: React.FC<IProps> = ({ post }) => {
             // the like count should be incremented by 1 when the post is liked, or else default to previous value
             return isPostLiked ? prevCount + 1 : prevCount;
         });
-    }, []);
+    }, [likedPosts]);
 
     const handlePostLike = (postId: number) => {
-        // check if the localStorage object exists, or else initialize an empty array
-        let likedPostsArray = localStorage.getItem('ideaa-liked-posts') ? JSON.parse(localStorage.getItem('ideaa-liked-posts') || '{}') : [];
+        // assign the context to a temporary variable
+        let likedPostsArray = likedPosts;
 
-        // check if likedPostsArray is populated, if it is check if the post exists
+        // check if context object is populated, if it is check if the post exists in th context object's array
         if (likedPostsArray.length > 0) {
             // if it exists, filter the postId from the list (if not, push it to the list)
             likedPostsArray = likedPostsArray.includes(postId) ? likedPostsArray.filter((id: number) => id !== postId) : likedPostsArray.concat(postId);
@@ -270,6 +275,8 @@ export const Post: React.FC<IProps> = ({ post }) => {
 
         // then set the array to the localStorage
         localStorage.setItem('ideaa-liked-posts', JSON.stringify(likedPostsArray));
+        // and also update the context to reflect the changes globally
+        setLikedPosts({ likedPosts: likedPostsArray });
     }
 
     return (
