@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 
 // context
 import { useLikedPostsState, useLikedPostsDispatch } from "../../context/likedPosts";
@@ -122,22 +122,88 @@ const PostTitle = styled.div`
     text-overflow: ellipsis;
 `;
 
+
+const quickPulse = keyframes`
+    0% {
+        opacity: 1;
+        -webkit-transform: scale(1);
+        transform: scale(1);
+    }
+    15% {
+        opacity: 0.8;
+    }
+    30% {
+        -webkit-transform: scale(1.4);
+        transform: scale(1.4);
+    }
+    45%,
+    100% {
+        opacity: 1;
+        -webkit-transform: scale(1);
+        transform: scale(1);
+    }
+`
+
 const PostLikesIcon = styled.svg`
    cursor: pointer;
    fill: var(--dark-gray);
    stroke: var(--light);
    stroke-width: 2px;
-   transition: fill 100ms ease-in, stroke 100ms ease-in;
+   opacity: 1;
+   transition: fill 100ms ease-in, stroke 100ms ease-in, opacity 100ms ease-in;
 
    &:hover {
-       fill: var(--liked);
-       stroke: var(--liked);
+       opacity: 0.75;
     }
-
+    
     /* if the post is liked */
     &.liked {
         fill: var(--liked);
         stroke: var(--liked);
+        animation: 1s ${quickPulse} ease-in-out;
+    }
+`;
+
+const quickPulseFade = keyframes`
+    0%,
+    to {
+        opacity: 0;
+        -webkit-transform: translate(-50%, -50%) scale(0);
+        transform: translate(-50%, -50%) scale(0);
+    }
+    15% {
+        opacity: 0.9;
+        -webkit-transform: translate(-50%, -50%) scale(1.2);
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+    30% {
+        -webkit-transform: translate(-50%, -50%) scale(0.8);
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    45%,
+    80% {
+        opacity: 0.9;
+        -webkit-transform: translate(-50%, -50%) scale(1);
+        transform: translate(-50%, -50%) scale(1);
+    }
+`
+
+const PostLikesLargeIcon = styled.svg`
+   position: absolute;
+   display: inline-block;
+   width: 30%;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+   fill: var(--light);
+   stroke: var(--light);
+   stroke-width: 2px;
+   transition: opacity 100ms ease-in;
+   opacity: 0;
+    
+    /* if the post is liked */
+    &.liked {
+        animation: 2s ${quickPulseFade} ease-in-out forwards;
     }
 `;
 
@@ -234,6 +300,7 @@ const numberFormatter = (number: number): string => {
 
 export const Post: React.FC<IProps> = ({ post }) => {
     const [postLiked, setPostLiked] = useState(false);
+    const [postDoubleClicked, setPostDoubleClicked] = useState(false);
     const [postLikeCount, setPostLikeCount] = useState(post.likeCount);
     // context hooks
     const { likedPosts } = useLikedPostsState();
@@ -252,6 +319,7 @@ export const Post: React.FC<IProps> = ({ post }) => {
         });
     }, [likedPosts]);
 
+    // this function will toggle the post like status
     const handlePostLike = (postId: number) => {
         // assign the context to a temporary variable
         let likedPostsArray = likedPosts;
@@ -279,14 +347,36 @@ export const Post: React.FC<IProps> = ({ post }) => {
         setLikedPosts({ likedPosts: likedPostsArray });
     }
 
+    // this function will emit on double clicking the post (this action will only trigger a like response, not an unlike response)
+    const handleDoubleClick = (postId: number) => {
+        // set the local state to handle the animation
+        setPostDoubleClicked(true);
+
+        // assign the context to a temporary variable
+        let likedPostsArray = likedPosts;
+
+        // only trigger the function if the post is not the the likedPosts array (this is to ensure that the doible click interaction is positive only)
+        if (!likedPostsArray.includes(postId)) {
+            handlePostLike(postId);
+        } else {
+            // set the state to false on a timeout to reset the animation 
+            setTimeout(() => {
+                setPostDoubleClicked(false);
+            }, 2500);
+        }
+    }
+
     return (
         <PostContainer>
             <PostAuthorContainer>
                 <AuthorAvatar src={post.authorAvatarSrc} alt={post.author}></AuthorAvatar>
                 <AuthorName href="#">{post.author}</AuthorName>
             </PostAuthorContainer>
-            <PostImageContainer>
+            <PostImageContainer onDoubleClick={() => handleDoubleClick(post._id)}>
                 <PostImage src={post.imgSrc} alt={post.imgAltText}></PostImage>
+                <PostLikesLargeIcon className={postLiked && postDoubleClicked ? 'liked' : ''} viewBox="0 0 24 24">
+                    <path d="M14 20.408c-.492.308-.903.546-1.192.709-.153.086-.308.17-.463.252h-.002a.75.75 0 01-.686 0 16.709 16.709 0 01-.465-.252 31.147 31.147 0 01-4.803-3.34C3.8 15.572 1 12.331 1 8.513 1 5.052 3.829 2.5 6.736 2.5 9.03 2.5 10.881 3.726 12 5.605 13.12 3.726 14.97 2.5 17.264 2.5 20.17 2.5 23 5.052 23 8.514c0 3.818-2.801 7.06-5.389 9.262A31.146 31.146 0 0114 20.408z"></path>
+                </PostLikesLargeIcon>
                 <PostImageContent>
                     <PostTitle>{post.title}</PostTitle>
                     <PostLikesIcon className={postLiked ? 'liked' : ''} onClick={() => handlePostLike(post._id)} viewBox="0 0 24 24" width="24" height="24">
