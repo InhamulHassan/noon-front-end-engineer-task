@@ -1,5 +1,4 @@
-import type { GetStaticProps, NextPage } from "next";
-import { InferGetStaticPropsType } from 'next';
+import type { InferGetStaticPropsType, GetStaticProps, NextPage } from "next";
 
 // components
 import Post from "../components/Post/index";
