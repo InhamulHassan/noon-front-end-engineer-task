@@ -1,4 +1,6 @@
 import type { AppProps } from 'next/app'
+// context
+import { LikedPostsProvider } from "../context/likedPosts";
 
 // layout
 import Layout from "../components/Layout";
@@ -10,7 +12,9 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <Layout>
       <GlobalStyles />
-      <Component {...pageProps} />
+      <LikedPostsProvider>
+        <Component {...pageProps} />
+      </LikedPostsProvider>
     </Layout>
   );
 }
