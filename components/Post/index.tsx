@@ -1,5 +1,8 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
+
+// sub components
+import Hashtags from './Hashtags';
 
 // ts interface
 interface IProps {
@@ -14,7 +17,8 @@ interface IProps {
         tags?: Array<string>,
         likeCount: number,
         commentsCount: number
-    }
+    },
+    // handleLike: (postId: number) => Promise<void>
 }
 
 // styled components
@@ -121,9 +125,16 @@ const PostLikesIcon = styled.svg`
    stroke: var(--light);
    stroke-width: 2px;
    transition: fill 100ms ease-in, stroke 100ms ease-in;
+
    &:hover {
        fill: var(--liked);
        stroke: var(--liked);
+    }
+
+    /* if the post is liked */
+    &.liked {
+        fill: var(--liked);
+        stroke: var(--liked);
     }
 `;
 
@@ -165,9 +176,15 @@ const PostLikesLink = styled.a`
 const PostLikesIconCount = styled(PostLikesIcon)`
     /* change fill color */
     fill: var(--link);
+    cursor: pointer;
     /* icon alignment offset */ 
     margin-top: 1px;
     margin-right: 5px;
+
+    &:hover {
+        fill: var(--link);
+        stroke: var(--link);
+    }
 `;
 
 const PostLikes = styled.div`
@@ -185,24 +202,6 @@ const PostDescription = styled.p`
     font-weight: 400;
     line-height: 1rem;
     color: var(--text);
-`;
-
-const PostHashtagsList = styled.div`
-    position: relative;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: flex-start;
-`;
-
-const PostHashtagsItem = styled.a`
-    position: relative;
-    font-size: 0.8rem;
-    font-weight: 300;
-    line-height: 1rem;
-    margin: 5px 5px 5px 0;
-    text-decoration: none;
 `;
 
 const PostCommentsLink = styled.a`
@@ -230,6 +229,49 @@ const numberFormatter = (number: number): string => {
 }
 
 export const Post: React.FC<IProps> = ({ post }) => {
+    const [postLiked, setPostLiked] = useState(false);
+    const [postLikeCount, setPostLikeCount] = useState(post.likeCount);
+
+    // trigger this only on mount
+    useEffect(() => {
+        let likedPostsArray = localStorage.getItem('ideaa-liked-posts') ? JSON.parse(localStorage.getItem('ideaa-liked-posts') || '{}') : [];
+
+        // check if the current post is liked or not
+        let isPostLiked = likedPostsArray.includes(post._id);
+
+        // trigger post's like state change along with the like count on mount
+        setPostLiked(isPostLiked);
+        setPostLikeCount(prevCount => {
+            // the like count should be incremented by 1 when the post is liked, or else default to previous value
+            return isPostLiked ? prevCount + 1 : prevCount;
+        });
+    }, []);
+
+    const handlePostLike = (postId: number) => {
+        // check if the localStorage object exists, or else initialize an empty array
+        let likedPostsArray = localStorage.getItem('ideaa-liked-posts') ? JSON.parse(localStorage.getItem('ideaa-liked-posts') || '{}') : [];
+
+        // check if likedPostsArray is populated, if it is check if the post exists
+        if (likedPostsArray.length > 0) {
+            // if it exists, filter the postId from the list (if not, push it to the list)
+            likedPostsArray = likedPostsArray.includes(postId) ? likedPostsArray.filter((id: number) => id !== postId) : likedPostsArray.concat(postId);
+        } else {
+            // if the list is not populated, add it to the list
+            likedPostsArray.push(postId);
+        }
+
+        let isPostLiked = likedPostsArray.includes(post._id);
+        // update the local component state to reflect the postLiked state
+        setPostLiked(isPostLiked);
+        // the like count should be incremented/decremented by 1 when the post is liked/unliked (make sure to take into account the prev. state of value)
+        setPostLikeCount(prevCount => {
+            return isPostLiked ? prevCount + 1 : prevCount - 1;
+        });
+
+        // then set the array to the localStorage
+        localStorage.setItem('ideaa-liked-posts', JSON.stringify(likedPostsArray));
+    }
+
     return (
         <PostContainer>
             <PostAuthorContainer>
@@ -240,7 +282,7 @@ export const Post: React.FC<IProps> = ({ post }) => {
                 <PostImage src={post.imgSrc} alt={post.imgAltText}></PostImage>
                 <PostImageContent>
                     <PostTitle>{post.title}</PostTitle>
-                    <PostLikesIcon viewBox="0 0 24 24" width="24" height="24">
+                    <PostLikesIcon className={postLiked ? 'liked' : ''} onClick={() => handlePostLike(post._id)} viewBox="0 0 24 24" width="24" height="24">
                         <path d="M14 20.408c-.492.308-.903.546-1.192.709-.153.086-.308.17-.463.252h-.002a.75.75 0 01-.686 0 16.709 16.709 0 01-.465-.252 31.147 31.147 0 01-4.803-3.34C3.8 15.572 1 12.331 1 8.513 1 5.052 3.829 2.5 6.736 2.5 9.03 2.5 10.881 3.726 12 5.605 13.12 3.726 14.97 2.5 17.264 2.5 20.17 2.5 23 5.052 23 8.514c0 3.818-2.801 7.06-5.389 9.262A31.146 31.146 0 0114 20.408z"></path>
                     </PostLikesIcon>
                 </PostImageContent>
@@ -251,15 +293,11 @@ export const Post: React.FC<IProps> = ({ post }) => {
                         <PostLikesIconCount viewBox="0 0 24 24" width="18" height="18">
                             <path d="M14 20.408c-.492.308-.903.546-1.192.709-.153.086-.308.17-.463.252h-.002a.75.75 0 01-.686 0 16.709 16.709 0 01-.465-.252 31.147 31.147 0 01-4.803-3.34C3.8 15.572 1 12.331 1 8.513 1 5.052 3.829 2.5 6.736 2.5 9.03 2.5 10.881 3.726 12 5.605 13.12 3.726 14.97 2.5 17.264 2.5 20.17 2.5 23 5.052 23 8.514c0 3.818-2.801 7.06-5.389 9.262A31.146 31.146 0 0114 20.408z"></path>
                         </PostLikesIconCount>
-                        <PostLikes>{numberFormatter(post.likeCount)} {post.likeCount == 1 ? `like` : `likes`}</PostLikes>
+                        <PostLikes>{numberFormatter(postLikeCount)} {postLikeCount == 1 ? `like` : `likes`}</PostLikes>
                     </PostLikesLink>
                 </PostLikesCount>
                 <PostDescription>{post.description}</PostDescription>
-                <PostHashtagsList>
-                    {post.tags?.map((singleTag, index) => (
-                        <PostHashtagsItem href="#" key={index}>{`#${singleTag}`}</PostHashtagsItem>
-                    ))}
-                </PostHashtagsList>
+                <Hashtags hashTags={post.tags}></Hashtags>
                 <PostCommentsLink href='#'>View {numberFormatter(post.commentsCount)} {post.commentsCount == 1 ? `comment` : `comments`}</PostCommentsLink>
             </PostDescriptionContainer>
         </PostContainer>
