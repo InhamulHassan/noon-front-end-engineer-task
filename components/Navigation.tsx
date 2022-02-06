@@ -145,7 +145,7 @@ const NavLinkTitle = styled.span`
 export const Navigation: React.FC = () => {
     // get the current route from the useRouter hook and assign the styling accordingly
     const router = useRouter();
-    const route = router.asPath;
+    const route = router.pathname;
 
     return (
         <NavContainer>
