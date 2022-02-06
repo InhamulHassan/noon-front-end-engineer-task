@@ -31,11 +31,9 @@ export const getStaticProps: GetStaticProps = async () => {
 
 const Home: NextPage<Post[]> = ({ posts }: InferGetStaticPropsType<typeof getStaticProps>) => {
   return (
-    <>
-      {posts && posts.map((post: Post) => (
-        <Post post={post} key={post._id} />
-      ))}
-    </>
+    posts && posts.map((post: Post) => (
+      <Post post={post} key={post._id} />
+    ))
   );
 };
 
