@@ -5,6 +5,8 @@
 [![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://github.com/microsoft/TypeScript) &nbsp;
 [![Styled Components](https://img.shields.io/badge/styled--components-DB7093?style=for-the-badge&logo=styled-components&logoColor=white)](https://github.com/styled-components/styled-components) &nbsp;
 
+![Noon Front-End Engineer Task](https://raw.githubusercontent.com/InhamulHassan/noon-front-end-engineer-task/main/final-device-mockups.gif)
+
 ## Tech Stack
 
 - [React](https://reactjs.org/): A free and open-source front-end JavaScript library for building user interfaces based on UI components, usually used as a base in the development of single-page applications.
@@ -23,6 +25,12 @@ $ npm install
 $ npm run dev
 ```
 
-## Viewing the application 
+## Viewing the application
 
 Navigate to [http://localhost:3001](http://localhost:3001) on your browser to open the development server and view the application.
+
+## Breakdown
+
+1. On loading the home page, we fetch all the posts from the `/posts` mock API (which in turn gets the data from the `data/posts.js` static file).
+2. When a user likes/unliked a post, we use the ContextAPI to store the liked posts state (we also make use of the `localStorage` to persist the liked state on page refresh).
+3. When the user navigates to the likes page, we fetch all the posts from the `/posts` mock API, and then filter the posts based on the liked posts array from the ContextAPI.
